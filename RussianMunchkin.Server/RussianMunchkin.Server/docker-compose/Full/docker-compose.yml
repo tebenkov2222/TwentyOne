@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  russion_munchkin:
+    container_name: russion_munchkin
+    image: tebenkov2222/russion_munchkin:0.2
+    restart: always
+    ports:
+      - "8002:8002/udp"
+      - "8380:8380"
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    ports:
+      - 8390:9090
+    restart: always
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: always
+    ports:
+      - 8383:3000
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+      
+volumes:
+  grafana-data:
+  prometheus_data:

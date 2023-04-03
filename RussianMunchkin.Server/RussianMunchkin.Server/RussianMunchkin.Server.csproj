@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <AssemblyName>RussianMunchkin.Server</AssemblyName>
+        <RootNamespace>RussianMunchkin.Server</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\RussianMunchkin.Common\RussianMunchkin.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="docker-compose\Grafana\grafana\provisioning\datasources" />
+      <Folder Include="Game\Player\Models" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="InfluxDB.Client" Version="4.12.0-dev.10193" />
+      <PackageReference Include="prometheus-net" Version="8.0.0" />
+      <PackageReference Include="prometheus-net.AspNetCore" Version="8.0.0" />
+    </ItemGroup>
+
+</Project>
