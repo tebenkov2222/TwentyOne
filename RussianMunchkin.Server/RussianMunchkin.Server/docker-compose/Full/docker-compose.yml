@@ -3,8 +3,10 @@ version: "3"
 services:
   russion_munchkin:
     container_name: russion_munchkin
-    image: tebenkov2222/russion_munchkin:0.2
+    image: tebenkov2222/russion_munchkin:0.4
     restart: always
+    volumes:
+      - ./config.json:/config.json
     ports:
       - "8002:8002/udp"
       - "8380:8380"
@@ -28,7 +30,18 @@ services:
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - grafana-data:/var/lib/grafana
-      
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: always
+    ports:
+      - 8032:5432
+    environment:
+      POSTGRES_PASSWORD: 'RussianMunchkin'
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+      - ./postgresql/database.sql:/app/database.sql
+      - ./postgresql/database.sql:/docker-entrypoint-initdb.d/database.sql
 volumes:
   grafana-data:
   prometheus_data:

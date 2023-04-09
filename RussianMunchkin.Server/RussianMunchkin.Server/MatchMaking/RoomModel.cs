@@ -6,7 +6,7 @@ namespace RussianMunchkin.Server.MatchMaking
         public bool IsLocked { get; set; }
         public string Uid { get; set; }
         public string Password { get; set; }
-        public int PlayerIdAdmin { get; set; }
+        public string AdminLogin { get; set; }
         public int MaxCountPlayers { get; set; }
     }
 }

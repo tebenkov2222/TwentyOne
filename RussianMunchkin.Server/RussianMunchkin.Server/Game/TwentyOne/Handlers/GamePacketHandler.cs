@@ -29,7 +29,7 @@ namespace RussianMunchkin.Server.Game.TwentyOne.Handlers
                     break;
                 default: return false;
             }
-            player.NetPeer.SendResponse(true);
+            player.Peer.SendResponse(true);
             return true;
         }
     }

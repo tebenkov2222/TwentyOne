@@ -6,6 +6,6 @@ namespace RussianMunchkin.Common.Packets.Game
     public class PlayerTokeNumberPacket: Packet
     {
         [Key(0)]
-        public int PlayerId { get; set; }
+        public string PlayerLogin { get; set; }
     }
 }

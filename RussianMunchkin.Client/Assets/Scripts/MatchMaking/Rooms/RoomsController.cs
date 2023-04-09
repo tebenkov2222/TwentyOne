@@ -17,7 +17,7 @@ namespace Controllers
         private PlayerInfoModel _playerInfoModel;
         
 
-        public RoomsController(NetPeer netPeer, IRoomsView view, PlayerModel playerModel, RoomModel roomModel) : base(netPeer)
+        public RoomsController(Peer peer, IRoomsView view, PlayerModel playerModel, RoomModel roomModel) : base(peer)
         {
             _view = view;
             _view.ControllerInit(playerModel);
@@ -48,7 +48,7 @@ namespace Controllers
 
         private async void ViewOnGetPublicRooms()
         {
-            var res = await NetPeer.SendPacket(new GetListPublicRooms());
+            var res = await _peer.SendPacket(new GetListPublicRooms());
             if (res)
             {
                 _view.ShowListPublicRooms();
@@ -57,24 +57,24 @@ namespace Controllers
 
         private async void ViewOnLeaveRoom()
         {
-            var res = await NetPeer.SendPacket(new ExitFromRoomPacket(){PlayerId = _playerModel.PlayerId});
+            var res = await _peer.SendPacket(new ExitFromRoomPacket(){PlayerLogin = _playerModel.Login});
             //todo implement handle result
         }
 
         private async void ViewOnStartGame()
         {
-            var res = await NetPeer.SendPacket(new ChangeStatusGamePacket());
+            var res = await _peer.SendPacket(new ChangeStatusGamePacket());
             //todo implement handle result
         }
 
         private async void ViewOnChangeReady(bool isReady)
         {
-            var res = await NetPeer.SendPacket(new ChangeStatusReadyPlayerPacket(){PlayerId = _playerModel.PlayerId, IsReady = isReady});
+            var res = await _peer.SendPacket(new ChangeStatusReadyPlayerPacket(){PlayerLogin = _playerModel.Login, IsReady = isReady});
         }
 
         private async void ViewOnConnectToRoom(string uid, string password)
         {
-            var res = await NetPeer.SendPacket(
+            var res = await _peer.SendPacket(
                 new RequestConnectToRoomPacket()
                 {
                     Uid = uid, 
@@ -82,6 +82,7 @@ namespace Controllers
                 });
             if (!res)
             {
+                if(res.Log == "incorrect pass0") Debug.Log("Password Incorect");
                 Debug.LogError($"Not connected to room. Log = {res.Log}");
             }
             //todo implement handle request
@@ -106,7 +107,7 @@ namespace Controllers
         }
         private async void RoomsViewOnCreateRoom(bool isPrivate, int countPlayers)
         {
-            var res = await NetPeer.SendPacket(new CreateRoomPacket()
+            var res = await _peer.SendPacket(new CreateRoomPacket()
                 { IsPrivate = isPrivate, MaxCountPlayers = countPlayers });
             //todo create logic connect to room
         }
@@ -116,9 +117,9 @@ namespace Controllers
             _view.ChangeAdmin(playerInfoModel); 
         }
 
-        public void ChangeStatusReady(int playerId, bool isReady)
+        public void ChangeStatusReady(string playerLogin, bool isReady)
         {
-            _view.ChangeStatusReady(playerId, isReady);
+            _view.ChangeStatusReady(playerLogin, isReady);
         }
 
         public void ChangeStatusStartGame(bool isReady)

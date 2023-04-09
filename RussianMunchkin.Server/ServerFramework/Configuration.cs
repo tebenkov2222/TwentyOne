@@ -1,6 +1,4 @@
-﻿using LiteNetLib;
-
-namespace ServerFramework
+﻿namespace ServerFramework
 {
     public class Configuration
     {

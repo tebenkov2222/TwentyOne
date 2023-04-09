@@ -32,7 +32,6 @@ namespace View.Views.Error
         }
         public void Show(string log, Color color)
         {
-            Show();
             var textOutput = log switch
             {
                 "room not found" => "Комната не найдена",
@@ -41,8 +40,10 @@ namespace View.Views.Error
                 "players in room is max" => "Комната заполнена",
                 "wrong password" => "Не верный пароль",
                 "close room" => "Комната была расформирована",
-                _ => log
+                _ => ""
             };
+            if(textOutput.Length == 0) return;
+            Show();
             _backGroudImage.color = color;
             _logText.text = textOutput;
         }

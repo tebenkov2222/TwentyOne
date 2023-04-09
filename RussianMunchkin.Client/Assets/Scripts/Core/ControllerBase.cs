@@ -2,11 +2,11 @@ namespace Core
 {
     public abstract class ControllerBase
     {
-        protected NetPeer NetPeer;
+        protected Peer _peer;
 
-        protected ControllerBase(NetPeer netPeer)
+        protected ControllerBase(Peer peer)
         {
-            NetPeer = netPeer;
+            _peer = peer;
         }
 
         public abstract void Enable();

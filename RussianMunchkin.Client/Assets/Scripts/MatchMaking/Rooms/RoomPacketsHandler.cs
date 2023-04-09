@@ -4,6 +4,7 @@ using Core;
 using Core.PacketHandlers;
 using PacketHandlers.Core;
 using RussianMunchkin.Common.Packets;
+using RussianMunchkin.Common.Packets.Room;
 using ServerFramework;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace PacketHandlers.Handlers
     {
         private readonly RoomsController _roomsController;
 
-        public RoomPacketsHandler(IPacketsHandler previewHandler, NetPeer netPeer, RoomsController roomsController) : base(previewHandler, netPeer)
+        public RoomPacketsHandler(IPacketsHandler previewHandler, Peer peer, RoomsController roomsController) : base(previewHandler, peer)
         {
             _roomsController = roomsController;
         }
@@ -24,9 +25,11 @@ namespace PacketHandlers.Handlers
             {
                 case ConnectToRoomPacket connectToRoomPacket:
                     _roomsController.ConnectToRoom(connectToRoomPacket);
+                    _peer.SendResponse(true);
 
                     break;
                 case ChangeConnectionToRoomPacket connectionToRoomPacket:
+                    Debug.Log($"Change connection {connectionToRoomPacket.PlayerInfoModel.Login}");
                     if (connectionToRoomPacket.IsConnected)
                     {
                         _roomsController.EnterPlayerToRoom(connectionToRoomPacket.PlayerInfoModel);
@@ -35,32 +38,37 @@ namespace PacketHandlers.Handlers
                     {
                         _roomsController.LeftPlayerFromRoom(connectionToRoomPacket.PlayerInfoModel);
                     }
-                    
+                    _peer.SendResponse(true);
+
                     break;
                 case ChangeAdminRoomPacket changeAdminRoomPacket:
                     _roomsController.ChangeAdmin(changeAdminRoomPacket.PlayerInfoModel);
-                    
+                    _peer.SendResponse(true);
+
                     break;
                 case ChangeStatusReadyPlayerPacket changeStatusReadyPlayerPacket:
-                    _roomsController.ChangeStatusReady(changeStatusReadyPlayerPacket.PlayerId, changeStatusReadyPlayerPacket.IsReady);
+                    _peer.SendResponse(true);
+                    _roomsController.ChangeStatusReady(changeStatusReadyPlayerPacket.PlayerLogin, changeStatusReadyPlayerPacket.IsReady);
 
                     break;
                 case ChangeStatusStartGamePacket changeStatusStartGamePacket:
                     _roomsController.ChangeStatusStartGame(changeStatusStartGamePacket.IsReady);
+                    _peer.SendResponse(true);
 
                     break;
                 case ExitFromRoomPacket:
                     _roomsController.LeaveRoom();
-                    
+                    _peer.SendResponse(true);
+
                     break;
                 case SendListPublicRooms sendListPublicRooms:
                     _roomsController.ShowListPublicRooms(sendListPublicRooms.Rooms);
-                    
+                    _peer.SendResponse(true);
+
                     break;
                 default: return false;
             }
             
-            NetPeer.SendResponse(true);
             return true;
         }
     }

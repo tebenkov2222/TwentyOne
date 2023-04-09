@@ -8,12 +8,12 @@ namespace PacketHandlers.Core
     public abstract class PacketHandlerDecorator: IPacketsHandler
     {
         private IPacketsHandler _previewHandler;
-        protected readonly NetPeer NetPeer;
+        protected readonly Peer _peer;
 
-        protected PacketHandlerDecorator(IPacketsHandler previewHandler, NetPeer netPeer)
+        protected PacketHandlerDecorator(IPacketsHandler previewHandler, Peer peer)
         {
             _previewHandler = previewHandler;
-            NetPeer = netPeer;
+            _peer = peer;
         }
 
         public void Handle(Packet packet)

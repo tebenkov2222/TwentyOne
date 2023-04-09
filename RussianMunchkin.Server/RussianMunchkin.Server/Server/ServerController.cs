@@ -1,51 +1,25 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Prometheus;
 using RussianMunchkin.Common.Packets;
-using RussianMunchkin.Server.Core.PacketsHandler.Decorator;
-using RussianMunchkin.Server.Game.TwentyOne.Handlers;
-using RussianMunchkin.Server.Game.TwentyOne.Player.Server;
-using RussianMunchkin.Server.Handlers;
-using RussianMunchkin.Server.MatchMaking;
-using RussianMunchkin.Server.Metrics;
-using RussianMunchkin.Server.Player;
+using RussianMunchkin.Server.Configuration;
 using ServerFramework;
-
 using ServerPlayer = RussianMunchkin.Server.Game.TwentyOne.Player.Server.ServerPlayerToController;
 
 namespace RussianMunchkin.Server.Server
 {
     public class ServerController
     {
-        private IServer<Packet> _server;
-        private Configuration _configurationServer = Configuration.Local;
+        private ConfigurationController _configurationController;
         
+        private IServer<Packet> _server;
+        private ServerLogic _serverLogic;
         private ServerModel<ServerPlayer> _model;
-        private IPacketsHandler<ServerPlayer> _packetsHandler;
-        private RoomsManager _roomsManager;
-        private PlayersController<ServerPlayer> _playersController;
-        private Gauge  _countClientsGauge;
-        public ServerModel<ServerPlayer> Model => _model;
+
         public ServerController()
         {
-            _countClientsGauge = Prometheus.Metrics.CreateGauge("count_clients", "");
-
+            _configurationController = new ConfigurationController();
+            _serverLogic = new ServerLogic(_configurationController);
             _server = new Server<Packet>();
-            _server.Config(_configurationServer);
+            _server.Config(_configurationController.ConfigurationServer);
             _model = new ServerModel<ServerPlayer>();
-            _roomsManager = new RoomsManager();
-            _playersController = new PlayersController<ServerPlayer>();
-            InitHandlersPackets();
-        }
-
-        private void InitHandlersPackets()
-        {
-            var packetHandler = new PacketHandler<ServerPlayer>();
-            var joinPacketHandler = new AuthUsernamePacketHandler(packetHandler);
-            var roomPacketHandler =  new RoomPacketHandler(joinPacketHandler, _roomsManager);
-            var gamePacketHandler = new GamePacketHandler(roomPacketHandler);
-            _packetsHandler = gamePacketHandler;
         }
 
         public void Enable()
@@ -71,33 +45,24 @@ namespace RussianMunchkin.Server.Server
 
         private void ServerOnClientConnected(int id)
         {
-            var netPeer = new NetPeer(_server, id);
-            var serverPlayer = new ServerPlayer(netPeer, id);
+            var netPeer = new Peer(_server, id);
+            var serverPlayer = new ServerPlayer(netPeer);
             netPeer.ChangeConnection(true);
             _model.Clients.Add(id, serverPlayer);
-            _playersController.AddPlayer(serverPlayer);
-            _countClientsGauge.Inc();
-            Console.WriteLine($"Connect player. Id = {id}. Counts = {_model.Clients.Count}");
-
+            _serverLogic.ClientConnected(serverPlayer);
         }
 
         private void ServerOnClientDisconnected(int id)
         {
-
             var serverPlayer = _model.Clients[id];
-            serverPlayer.NetPeer.ChangeConnection(false);
-            _roomsManager.TryRemovePlayer(serverPlayer);
+            serverPlayer.Peer.ChangeConnection(false);
+            _serverLogic.ClientDisconnected(serverPlayer);
             _model.Clients.Remove(id);
-            _playersController.RemovePlayer(serverPlayer);
-            _countClientsGauge.Dec();
-
-            Console.WriteLine($"Disconnect player. Id = {id}. Count = {_model.Clients.Count}");
-
         }
 
         private void ServerOnReceivePacket(int id, Packet packet)
         {
-            _packetsHandler.Handle(_model.Clients[id], packet);
+            _serverLogic.HandlePacket(_model.Clients[id], packet);
         }
     }
 }

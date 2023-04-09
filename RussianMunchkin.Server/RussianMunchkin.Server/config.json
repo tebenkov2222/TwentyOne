@@ -1,0 +1,22 @@
+{
+  "Server": {
+    "Config": "Json",
+    "JsonOption": "Default",
+    "Default": {
+      "Port": 8002,
+      "Host": "localhost",
+      "ConnectionKey": "kAs!5s"
+    }
+  },
+  "Database": {
+    "Config": "Json",
+    "JsonOption": "Default",
+    "Default": {
+      "Host": "localhost",
+      "Port": 8032,
+      "DataBaseName": "postgres",
+      "Password": "RussianMunchkin",
+      "UserName": "postgres"
+    }
+  }
+}

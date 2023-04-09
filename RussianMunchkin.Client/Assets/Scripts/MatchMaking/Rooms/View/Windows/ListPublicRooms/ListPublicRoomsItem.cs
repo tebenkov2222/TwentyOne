@@ -33,7 +33,7 @@ namespace MatchMaking.Rooms.View.Windows.ListPublicRooms
         {
             _roomInfoModel = roomInfoModel;
             _uidText.text = roomInfoModel.Uid;
-            _adminUsername.text = roomInfoModel.AdminPlayer.Username;
+            _adminUsername.text = roomInfoModel.AdminPlayer.Login;
             _currentCountPlayer.text = $"{roomInfoModel.CurrentCountPlayers}/{roomInfoModel.MaxCountPlayers}";
         }
     }

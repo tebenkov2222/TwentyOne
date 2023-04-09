@@ -4,13 +4,11 @@ using RussianMunchkin.Common.Packets;
 namespace RussianMunchkin.Common.Models
 {
     [MessagePackObject]
-    public class PlayerInfoModel: Packet
+    public class PlayerInfoModel
     {
         [Key(0)]
-        public string Username { get; set; }
+        public string Login { get; set; }
         [Key(1)]
-        public int PlayerId { get; set; }
-        [Key(2)]
         public bool IsReady { get; set; }
     }
 }

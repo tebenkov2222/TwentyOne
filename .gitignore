@@ -77,4 +77,14 @@ crashlytics-build.properties
 #ide
 *.vscode/
 *.idea/
+*puml/
+*.puml
+RussianMunchkin.Server/puml
+
+RussianMunchkin.Server/RussianMunchkin.Server/docker-compose/Full/postgresql/data/
+RussianMunchkin.Server/RussianMunchkin.Server/docker-compose/TestPostgres/postgresql/data/
+
 RussianMunchkin.Client/Assembly-CSharp.csproj
+
+
+

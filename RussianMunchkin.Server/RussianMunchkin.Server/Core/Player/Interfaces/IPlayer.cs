@@ -6,6 +6,6 @@ namespace RussianMunchkin.Server.Core.Player.Interfaces
     {
         public PlayerModel PlayerModel { get; }
 
-        public void SetPlayerId(int playerId);
+        public void LogIn(string playerLogin);
     }
 }

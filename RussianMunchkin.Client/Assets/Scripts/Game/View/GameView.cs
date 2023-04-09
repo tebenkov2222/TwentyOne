@@ -79,7 +79,7 @@ namespace Game.View
         private void ReadyToShow()
         {
             _readyButton.interactable = false;
-            PlayerReadyToShow(_playerModel.PlayerId);
+            PlayerReadyToShow(_playerModel.Login);
             ReadyShow?.Invoke();
         }
         public void StartGame()
@@ -117,12 +117,12 @@ namespace Game.View
 
         private void CreateItem(PlayerInfoModel playerInfoModel)
         {
-            var playerItem = _itemsGroupView.Add(playerInfoModel.PlayerId, _prefabGamePlayerItem);
+            var playerItem = _itemsGroupView.Add(playerInfoModel.Login, _prefabGamePlayerItem);
             playerItem.Show(playerInfoModel);
         }
         public void ReceiveNumber(int number)
         {
-            _itemsGroupView[_playerModel.PlayerId].TakenNumber(number);
+            _itemsGroupView[_playerModel.Login].TakenNumber(number);
         }
 
         public async void ShowResults(List<GamePlayerInfoModel> results)
@@ -130,8 +130,8 @@ namespace Game.View
             Debug.Log($"Res count = {results.Count}");
             foreach (var result in results)
             {
-                var playerView = _itemsGroupView[result.Id];
-                if(_playerModel.PlayerId != result.Id) await playerView.ShowResult(result);
+                var playerView = _itemsGroupView[result.Login];
+                if(_playerModel.Login != result.Login) await playerView.ShowResult(result);
             }
 
             await Task.Delay(1000);
@@ -141,14 +141,14 @@ namespace Game.View
             gameWinningWindow.Hide();
             ReadyRestart?.Invoke();
         }
-        public void PlayerTokedNumber(int playerId)
+        public void PlayerTokedNumber(string playerLogin)
         {
-            _itemsGroupView[playerId].TakenNumber();
+            _itemsGroupView[playerLogin].TakenNumber();
         }
 
-        public void PlayerReadyToShow(int playerId)
+        public void PlayerReadyToShow(string playerLogin)
         {
-            _itemsGroupView[playerId].ReadyShow();
+            _itemsGroupView[playerLogin].ReadyShow();
         }
 
         public void ResetGame()

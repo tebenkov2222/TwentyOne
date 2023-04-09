@@ -2,24 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RussianMunchkin.Common.Models;
-using RussianMunchkin.Server.Core.Player.Interfaces;
-using RussianMunchkin.Server.Game.Player.Static;
 using RussianMunchkin.Server.Game.TwentyOne;
-using RussianMunchkin.Server.Game.TwentyOne.Player;
 using RussianMunchkin.Server.Game.TwentyOne.Player.Server;
-using RussianMunchkin.Server.Player.MatchMaking.Rooms;
-using RussianMunchkin.Server.Server;
+using RussianMunchkin.Server.Mapper;
 
+using PlayerController = RussianMunchkin.Server.Core.Player.PlayerControllerBase;
 namespace RussianMunchkin.Server.MatchMaking
 {
     public class Room
     {
         private static int _minCountPlayersStartGame = 2;
         private readonly RoomModel _model;
-        private Dictionary<int, PlayerControllerBase> _players;
+        private Dictionary<string, PlayerController> _players;
+        public PlayerController this[string login] => Players[login];
+        public PlayerController this[PlayerController player] => this[player.AuthController.AuthModel.Login];
         private bool _isReadyStartGame;
         private GameController _gameController;
 
+        public Dictionary<string, PlayerController> Players => _players;
         public event Action<Room> GameOver;
 
         public bool IsReadyStartGame
@@ -30,7 +30,7 @@ namespace RussianMunchkin.Server.MatchMaking
                 if (_isReadyStartGame != value)
                 {
                     Console.WriteLine($"Is Ready = {value}");
-                    _players[_model.PlayerIdAdmin].RoomsController.ChangeStatusStartGame(value);
+                    _players[_model.AdminLogin].RoomsController.ChangeStatusStartGame(value);
 
                 }
 
@@ -38,23 +38,22 @@ namespace RussianMunchkin.Server.MatchMaking
             }
         }
         public RoomModel Model => _model;
-        public Dictionary<int, PlayerControllerBase> Players => _players;
 
         public Room(RoomModel model)
         {
             _model = model;
-            _players = new Dictionary<int, PlayerControllerBase>();
+            _players = new Dictionary<string, PlayerController>();
             _gameController = new GameController();
 
         }
 
-        public void AddPlayer(PlayerControllerBase player)
+        public void AddPlayer(PlayerController player)
         {
             foreach (var playerInRoom in _players.Values)
             {
                 playerInRoom.RoomsController.PlayerEnteredToRoom(player);
             }
-            _players.Add(player.PlayerModel.PlayerId, player);
+            _players.Add(player.AuthController.AuthModel.Login,player);
             player.RoomsController.EnterToRoom(GetRoomInfoModel());
             
             foreach (var playerInRoom in _players.Values)
@@ -62,15 +61,16 @@ namespace RussianMunchkin.Server.MatchMaking
                 player.RoomsController.PlayerEnteredToRoom(playerInRoom);
             }
 
-            Console.WriteLine($"Enter {player.PlayerModel.PlayerId} to room {_model.Uid}. CountPlayers = {_players.Count}");
+            Console.WriteLine();
+            Console.WriteLine($"Enter {player.PlayerModel.Login} to room {_model.Uid}. CountPlayers = {_players.Count}");
             CheckReadyStartGame();
 
         }
-        public void RemovePlayer(int playerId)
+        public void RemovePlayer(string login)
         {
-            var player = _players[playerId];
+            var player = _players[login];
             player.RoomsController.ExitFromRoom();
-            _players.Remove(playerId);
+            _players.Remove(login);
             if (_gameController.IsStartedGame)
             {
                 StopGame();
@@ -80,20 +80,13 @@ namespace RussianMunchkin.Server.MatchMaking
                 playerInRoom.RoomsController.PlayerLeftFromRoom(player);
             }
 
-            if (player.PlayerModel.PlayerId == _model.PlayerIdAdmin) ChangeAdmin();
+            if (player.AuthController.AuthModel.Login == _model.AdminLogin) ChangeAdmin();
             if (_players.Count > 0) CheckReadyStartGame();
         }
 
         private void CheckReadyStartGame()
         {
-            Console.WriteLine($"CheckReadyStartGame = {_players.Count >= _minCountPlayersStartGame} && {_players.All(t =>t.Value.RoomsModel.IsReadyStartGame)}");
-
-            IsReadyStartGame = _players.Count >= _minCountPlayersStartGame && _players.All(t =>t.Value.RoomsModel.IsReadyStartGame);
-            
-            foreach (var player in _players.Values)
-            {
-                Console.WriteLine($"Player {player.PlayerModel.PlayerId} is ready = {player.RoomsModel.IsReadyStartGame}");
-            }
+            IsReadyStartGame = _players.Count >= _minCountPlayersStartGame && _players.All(t =>t.Value.RoomsController.PlayerRoomModel.IsReadyStartGame);
         }
 
         private void ChangeAdmin()
@@ -101,7 +94,7 @@ namespace RussianMunchkin.Server.MatchMaking
             var playerFirst = _players.Values.FirstOrDefault(t =>t is ServerPlayerToController);
             if (playerFirst != default)
             {
-                _model.PlayerIdAdmin = playerFirst.PlayerModel.PlayerId;
+                _model.AdminLogin = playerFirst.AuthController.AuthModel.Login;
                 foreach (var playerInRoom in _players.Values)
                 {
                     playerInRoom.RoomsController.ChangeAdmin(playerFirst);
@@ -139,12 +132,12 @@ namespace RussianMunchkin.Server.MatchMaking
             GameOver?.Invoke(this);
         }
 
-        public void ChangeReadyStatusPlayer(int playerId, bool isReady)
+        public void ChangeReadyStatusPlayer(string playerLogin, bool isReady)
         {
-            _players[playerId].RoomsController.ChangeStatusReady(isReady);
-            foreach (var player in _players.Values)
+            this[playerLogin].RoomsController.ChangeStatusReady(isReady);
+            foreach (var playerInRoom in _players.Values)
             {
-                player.RoomsController.ChangeStatusReadyPlayer(playerId, isReady); 
+                playerInRoom.RoomsController.ChangeStatusReadyPlayer(playerLogin, isReady); 
             }
             CheckReadyStartGame();
         }
@@ -154,15 +147,15 @@ namespace RussianMunchkin.Server.MatchMaking
             {
                 Uid = _model.Uid,
                 Password = _model.Password,
-                AdminPlayer = GetPlayerInfoByPlayerId(_model.PlayerIdAdmin), //TODO костыль убери
+                AdminPlayer = GetPlayerInfoByPlayerLogin(_model.AdminLogin),
                 IsPrivate = _model.IsPrivate,
                 MaxCountPlayers = _model.MaxCountPlayers,
                 CurrentCountPlayers = _players.Count,
             };
         }
-        public PlayerInfoModel GetPlayerInfoByPlayerId(int playerId)
+        public PlayerInfoModel GetPlayerInfoByPlayerLogin(string playerLogin)
         {
-            return CommonModelCreatorStatic.GetPlayerInfoByPlayer(_players[playerId]);
+            return MapperInstance.Mapper.Map<PlayerInfoModel>(_players[playerLogin]);
         }
     }
 }

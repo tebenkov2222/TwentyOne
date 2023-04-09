@@ -1,11 +1,9 @@
-using System;
-using Auth.Username.View;
+using Auth.Full.View;
 using Connecting.View;
 using Game.View;
 using MatchMaking.Rooms.View;
 using ServerHandler.View;
 using UnityEngine;
-using View.Views;
 using View.Views.Error;
 
 namespace View
@@ -13,13 +11,13 @@ namespace View
     public class UIManager : MonoBehaviour
     {
         [SerializeField] private ServerHandlerView _serverHandlerView;
-        [SerializeField] private AuthUsernameView _authUsernameView;
+        [SerializeField] private AuthFullView _authFullView;
         [SerializeField] private RoomsView _roomsView;
         [SerializeField] private ConnectingView _connectingView;
         [SerializeField] private GameView _gameView;
         [SerializeField] private MessagePanel _messagePanel;
 
-        public AuthUsernameView AuthUsernameView => _authUsernameView;
+        public AuthFullView AuthFullView => _authFullView;
         public ServerHandlerView ServerHandlerView => _serverHandlerView;
         public RoomsView RoomsView => _roomsView;
         public ConnectingView ConnectingView => _connectingView;
@@ -27,13 +25,13 @@ namespace View
 
         private void Awake()
         {
-            _authUsernameView.Show();
+            _authFullView.Show();
             _roomsView.Init();
         }
 
         private void OnEnable()
         {
-            _authUsernameView.WindowClosed+=ServerViewOnWindowClosed;
+            _authFullView.LoginSuccessed+=ServerViewOnLoginSuccessed;
             
             _serverHandlerView.FailedResponse+=ServerViewOnFailedResponse;
             _serverHandlerView.Disconnected+=ServerViewOnDisconnected;
@@ -47,7 +45,7 @@ namespace View
 
         private void OnDisable()
         {
-            _authUsernameView.WindowClosed-=ServerViewOnWindowClosed;
+            _authFullView.LoginSuccessed-=ServerViewOnLoginSuccessed;
             
             _serverHandlerView.FailedResponse-=ServerViewOnFailedResponse;
             _serverHandlerView.Disconnected-=ServerViewOnDisconnected;
@@ -88,9 +86,10 @@ namespace View
             GameView.Hide();
         }
 
-        private void ServerViewOnWindowClosed()
+        private void ServerViewOnLoginSuccessed()
         {
             Debug.Log("Server View Closed");
+            _authFullView.Hide();
             _roomsView.ShowGeneralPanel();
         }
 
@@ -100,7 +99,7 @@ namespace View
         }
         private void ResetUi()
         {
-            _authUsernameView.Show();
+            _authFullView.Show();
             _roomsView.Hide();
             _gameView.Hide();
         }

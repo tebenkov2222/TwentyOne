@@ -19,7 +19,7 @@ namespace Game.View.Players
 
         public void Show(PlayerInfoModel playerInfoModel)
         {
-            _usernameText.text = playerInfoModel.Username;
+            _usernameText.text = playerInfoModel.Login;
             _sumText.text = "-";
         }
 

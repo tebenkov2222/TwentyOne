@@ -7,6 +7,7 @@ using Models;
 using RussianMunchkin.Common.Models;
 using RussianMunchkin.Common.Packets.Game;
 using RussianMunchkin.Common.Time;
+using UnityEngine;
 
 namespace Game
 {
@@ -25,7 +26,7 @@ namespace Game
 
         public IGameView View => _view;
 
-        public GameController(NetPeer netPeer, IGameView view, PlayerModel playerModel, RoomModel roomModel) : base(netPeer)
+        public GameController(Peer peer, IGameView view, PlayerModel playerModel, RoomModel roomModel) : base(peer)
         {
             _timerController = TimersManager.GenerateTimer(_timeToTurnMillis);
             _view = view;
@@ -65,14 +66,18 @@ namespace Game
         }
         public void StartGame(List<PlayerInfoModel> players)
         {
+            Debug.Log("StartGame");
             _isGameStarted = true;
             _players = players;
+            ResetGame();
             _timerController.Start();
             _view.StartGame();
         }
 
         public void StopGame()
         {
+            Debug.Log("StopGame");
+
             _timerController.Stop();
             _timerController.Reset();
             _isGameStarted = false;
@@ -86,14 +91,14 @@ namespace Game
 
         private async void ViewOnReadyRestart()
         {
-            await NetPeer.SendPacket(new RestartSessionPacket());
+            await _peer.SendPacket(new RestartSessionPacket());
             //todo: response packet
         }
 
         private async void ViewOnReady()
         {
             _timerController.Stop();
-            await NetPeer.SendPacket(new PlayerReadyGamePacket());
+            await _peer.SendPacket(new PlayerReadyGamePacket());
             //todo: response packet
 
         }
@@ -101,24 +106,31 @@ namespace Game
         private async void ViewOnTokeNumber()
         {
             _timerController.Restart();
-            await NetPeer.SendPacket(new RequestGetNumberPacket());
+            await _peer.SendPacket(new RequestGetNumberPacket());
             //todo: response packet
 
         }
 
         public void ReceiveNumber(int number)
-        {
+        {   
             _gameModel.Sum += number;
             _view.ReceiveNumber(number);
+            Debug.Log($"Receive Number Sum = { _gameModel.Sum}");
             if(_gameModel.Sum > 21) _view.LockTurn();
             
         }
 
+        public void ResetGame()
+        {
+            _timerController.Reset();
+            _gameModel.Sum = 0;
+        }
         public void RestartGame()
         {
-            _timerController.Restart();
-            _gameModel.Sum = 0;
+            ResetGame();
+            
             _view.RestartGame();
+            _timerController.Start();
         }
     }
 }

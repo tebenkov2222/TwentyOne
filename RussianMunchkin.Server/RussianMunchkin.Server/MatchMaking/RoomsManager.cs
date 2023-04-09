@@ -1,63 +1,53 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Prometheus;
 using RussianMunchkin.Common;
-using RussianMunchkin.Common.Models;
-using RussianMunchkin.Common.Packets;
-using RussianMunchkin.Server.Core.Player.Interfaces;
 using RussianMunchkin.Server.Core.Player.Models;
 using RussianMunchkin.Server.Game.TwentyOne.Player;
-using ServerFramework;
-
-using Player = RussianMunchkin.Server.Game.TwentyOne.Player.PlayerControllerBase;
+using RussianMunchkin.Server.Player;
+using PlayerController = RussianMunchkin.Server.Core.Player.PlayerControllerBase;
 
 namespace RussianMunchkin.Server.MatchMaking
 {
     public class RoomsManager
     {
         private Dictionary<string, Room> _rooms;
-        private Dictionary<int, Room> _players;
+        private Dictionary<string, Room> _playersToRoom;
+
         private Gauge _countRoomsGauge;
 
         public Dictionary<string, Room> Rooms => _rooms;
 
-        public Dictionary<int, Room> Players => _players;
+        public Dictionary<string, Room> PlayersToRoom => _playersToRoom;
 
         public RoomsManager()
         {
             _rooms = new Dictionary<string, Room>();
-            _players = new Dictionary<int, Room>();
+            _playersToRoom = new Dictionary<string, Room>();
             _countRoomsGauge = Prometheus.Metrics.CreateGauge("count_rooms", "");
         }
-
-        public Room GetRoomByPlayer(int playerId)
+        public bool TryGetRoomByPlayerLogin(string playerLogin, out Room room)
         {
-            return _players[playerId];
+            return _playersToRoom.TryGetValue(playerLogin, out room);
         }
-        public bool TryGetRoomByPlayerId(int playerId, out Room room)
-        {
-            return _players.TryGetValue(playerId, out room);
-        }
-        public bool TryGetRoomByPlayer(PlayerModel model, out Room room)
-        {
-            return TryGetRoomByPlayerId(model.PlayerId, out room);
-        }
-        public Room CreateRoom(int id, bool isPrivate, int maxCountPlayers)
+        public Room CreateRoom(PlayerController player, bool isPrivate, int maxCountPlayers)
         {
             var uid = UidGenerator.GenerateUid(_rooms.Count+1);
             var password = UidGenerator.GeneratePassword();
-            var roomModel = new RoomModel();
-            roomModel.PlayerIdAdmin = id;
-            roomModel.IsPrivate = isPrivate;
-            roomModel.MaxCountPlayers = maxCountPlayers;
-            roomModel.Uid = uid;
-            roomModel.Password = password;
+            var roomModel = new RoomModel()
+            {
+                AdminLogin = (string)player,
+                IsPrivate = isPrivate,
+                MaxCountPlayers = maxCountPlayers,
+                Uid = uid,
+                Password = password,
+            };
+            
             var room = new Room(roomModel);
             room.GameOver+=RoomOnGameOver;
             _rooms.Add(uid,room);
-            Console.WriteLine($"Room was be created uid = {uid} password = {password} idAdmin = {id} isPrivate = {isPrivate} maxCount = {maxCountPlayers}");
+            Console.WriteLine($"Room was be created uid = {uid} password = {password} adminLogin = {player.AuthController.AuthModel.Login} isPrivate = {isPrivate} maxCount = {maxCountPlayers}");
             Console.WriteLine($"Count rooms = {_rooms.Count}");
             _countRoomsGauge.Inc();
             return room;
@@ -66,17 +56,17 @@ namespace RussianMunchkin.Server.MatchMaking
         private void RoomOnGameOver(Room room)
         {
             room.GameOver-=RoomOnGameOver;
-            var roomPlayerKeys = room.Players.Keys.ToList();
-            foreach (var player in roomPlayerKeys)
+            var roomPlayerValues = room.Players.Values.ToList();
+            foreach (var player in roomPlayerValues)
             {
                 TryRemovePlayer(player);
             }
         }
 
-        public void AddPlayerToRoom(PlayerControllerBase player, Room room)
+        public void AddPlayerToRoom(PlayerController player, Room room)
         {
-            Console.WriteLine($"Player {player.AuthModel.Username} added to room {room.Model.Uid}");
-            _players.Add(player.PlayerModel.PlayerId,room);
+            Console.WriteLine($"Player {player.AuthController.AuthModel.Login} added to room {room.Model.Uid}");
+            _playersToRoom.Add((string)player,room);
             room.AddPlayer(player);
         }
 
@@ -90,19 +80,19 @@ namespace RussianMunchkin.Server.MatchMaking
             foreach (var player in room.Players.Values)
             {
                 player.RoomsController.ExitFromRoom();
-                _players.Remove(player.PlayerModel.PlayerId);
+                _playersToRoom.Remove((string)player);
             }
 
             _rooms.Remove(room.Model.Uid);
             _countRoomsGauge.Dec();
         }
-        public bool TryRemovePlayer(int playerId)
+        public bool TryRemovePlayer(string login)
         {
-            if (!_players.TryGetValue(playerId, out var room)) return false;
+            if (!_playersToRoom.TryGetValue(login, out var room)) return false;
             
             Console.WriteLine($"Try Remove player from room. Uid room = {room.Model.Uid}");
-            room.RemovePlayer(playerId);
-            _players.Remove(playerId);
+            room.RemovePlayer(login);
+            _playersToRoom.Remove(login);
             Console.WriteLine($"Count player in room {room.Model.Uid} = {room.Players.Count}");
 
             if (room.Players.Count == 0)
@@ -114,9 +104,9 @@ namespace RussianMunchkin.Server.MatchMaking
             return true;
 
         }
-        public bool TryRemovePlayer(PlayerControllerBase player)
+        public bool TryRemovePlayer(PlayerController player)
         {
-            return TryRemovePlayer(player.PlayerModel.PlayerId);
+            return TryRemovePlayer((string)player);
         }
     }
 }

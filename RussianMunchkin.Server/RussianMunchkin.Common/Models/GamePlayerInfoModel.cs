@@ -7,7 +7,7 @@ namespace RussianMunchkin.Common.Models
     public class GamePlayerInfoModel
     {
         [Key(0)]
-        public int Id { get; set; }
+        public string Login { get; set; }
         [Key(1)]
         public int Sum { get; set; }
         [Key(2)]

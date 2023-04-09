@@ -175,7 +175,7 @@ namespace MatchMaking.Rooms.View
         public void EnterPlayerToRoom(PlayerInfoModel playerInfoModel)
         {
             lobbyWindow.EnterPlayerToRoom(playerInfoModel);
-            if(_playerModel.PlayerId == playerInfoModel.PlayerId ) SetMeIsAdmin(playerInfoModel.PlayerId  == _roomInfoModel.AdminPlayer.PlayerId);
+            if(_playerModel.Login == playerInfoModel.Login ) SetMeIsAdmin(playerInfoModel.Login  == _roomInfoModel.AdminPlayer.Login);
 
         }
 
@@ -186,12 +186,12 @@ namespace MatchMaking.Rooms.View
         public void ChangeAdmin(PlayerInfoModel playerInfoModel)
         {
             lobbyWindow.SetAdmin(playerInfoModel);
-            SetMeIsAdmin(_playerModel.PlayerId == playerInfoModel.PlayerId);
+            SetMeIsAdmin(_playerModel.Login == playerInfoModel.Login);
         }
 
-        public void ChangeStatusReady(int playerId, bool isReady)
+        public void ChangeStatusReady(string playerLogin, bool isReady)
         {
-            lobbyWindow.ChangeStatusReady(playerId, isReady);
+            lobbyWindow.ChangeStatusReady(playerLogin, isReady);
         }
 
         public void ChangeStatusStartGame(bool isReady)

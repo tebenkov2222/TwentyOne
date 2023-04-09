@@ -13,14 +13,14 @@ namespace Game.View.Windows
         [SerializeField] private GameObject _winPanel;
         [SerializeField] private GameObject _drawPanel;
         
-        private Dictionary<int, PlayerInfoModel> _players;
+        private Dictionary<string, PlayerInfoModel> _players;
 
         public void Init(List<PlayerInfoModel> players)
         {
-            _players = new Dictionary<int, PlayerInfoModel>();
+            _players = new Dictionary<string, PlayerInfoModel>();
             foreach (var player in players)
             {
-                _players.Add(player.PlayerId, player);
+                _players.Add(player.Login, player);
             }
         }
         public void ShowResults(List<GamePlayerInfoModel> results)
@@ -31,8 +31,7 @@ namespace Game.View.Windows
             _drawPanel.SetActive(!isWinner);
             if (isWinner)
             {
-                
-                _winnerText.text = _players[winner.Id].Username;
+                _winnerText.text = _players[winner.Login].Login;
             }
         }
     }

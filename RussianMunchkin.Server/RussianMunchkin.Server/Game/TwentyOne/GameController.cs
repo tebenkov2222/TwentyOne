@@ -6,30 +6,32 @@ using RussianMunchkin.Common.Models;
 using RussianMunchkin.Server.Core.Player.Interfaces;
 using RussianMunchkin.Server.Core.Player.Models;
 using RussianMunchkin.Server.Game.Player.Interfaces;
+using RussianMunchkin.Server.Game.TwentyOne.Player.Models;
 
 namespace RussianMunchkin.Server.Game.TwentyOne
 {
     public class GameController
     {
         private bool _isStartedGame;
-        private Dictionary<int, IPlayerGameController> _players;
+        private Dictionary<string, IPlayerGameController> _players;
         private Random _random;
 
         public bool IsStartedGame => _isStartedGame;
         
         public GameController()
         {
-            _players = new Dictionary<int, IPlayerGameController>();
+            _players = new Dictionary<string, IPlayerGameController>();
             
             _random = new Random();
         }
 
         public void Init(List<IPlayerGameController> players)
         {
+            RestartGame();
             foreach (var player in players)
             {
-                Console.WriteLine($"Add player {player.PlayerModel.PlayerId} in game");
-                _players.Add(player.PlayerModel.PlayerId, player);
+                Console.WriteLine($"Add player {player.PlayerModel.Login} in game");
+                _players.Add(player.PlayerModel.Login, player);
             }
 
         }
@@ -67,23 +69,22 @@ namespace RussianMunchkin.Server.Game.TwentyOne
         public void ShowResults()
         {
             List<GamePlayerInfoModel> results = new List<GamePlayerInfoModel>();
-            var playersRaiting = _players
-                .OrderByDescending(player => player.Value.GameModel.Sum)
-                .Where(player => player.Value.GameModel.Sum <= 21)
-                .Select(p => p.Value)
+            var playersRiting = _players.Values
+                .OrderByDescending(player => player.GameModel.Sum)
+                .Where(player => player.GameModel.Sum <= 21)
                 .ToList();
             int maxValue = Int32.MaxValue;
-            if (playersRaiting.Count > 0)
+            if (playersRiting.Count > 0)
             {
-                var curMaxSum = playersRaiting[0].GameModel.Sum;
-                var count = playersRaiting.Count(p => p.GameModel.Sum == curMaxSum);
+                var curMaxSum = playersRiting[0].GameModel.Sum;
+                var count = playersRiting.Count(p => p.GameModel.Sum == curMaxSum);
                 if (count == 1) maxValue = curMaxSum;
             }
             foreach (var result in _players.Values)
             {
                 results.Add(new GamePlayerInfoModel()
                 {
-                    Id = result.PlayerModel.PlayerId,
+                    Login = result.PlayerModel.Login,
                     Numbers = result.GameModel.Numbers,
                     Sum = result.GameModel.Sum,
                     IsWinner = maxValue == result.GameModel.Sum
@@ -118,7 +119,7 @@ namespace RussianMunchkin.Server.Game.TwentyOne
         private async void PlayerOnPlayerReadyShow(PlayerModel model)
         {
             
-            foreach (var playerInRoom in _players.Values.Where(playerInRoom => playerInRoom.PlayerModel.PlayerId != model.PlayerId))
+            foreach (var playerInRoom in GetOpponents(model.Login))
             {
                 playerInRoom.OpponentReady(model);
             }
@@ -131,14 +132,19 @@ namespace RussianMunchkin.Server.Game.TwentyOne
         private void PlayerOnNumberToked(PlayerModel model)
         {
             var number = _random.Next(1,12);
-            var player = _players[model.PlayerId];
+            var player = _players[model.Login];
             player.ReceiveNumber(number);
             player.GameModel.Numbers.Add(number);
             player.GameModel.Sum += number;
-            foreach (var playerInRoom in _players.Values.Where(playerInRoom => playerInRoom.PlayerModel.PlayerId != model.PlayerId))
+            foreach (var playerInRoom in GetOpponents(model.Login))
             {
                 playerInRoom.PlayerReceivedNumber(model);
             }
+        }
+
+        private IEnumerable<IPlayerGameController> GetOpponents(string login)
+        {
+            return _players.Values.Where(playerInRoom => playerInRoom.PlayerModel.Login != login);
         }
     }
 }

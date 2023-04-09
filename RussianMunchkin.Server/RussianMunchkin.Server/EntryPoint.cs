@@ -3,8 +3,6 @@ using System.Threading;
 using Prometheus;
 using RussianMunchkin.Common;
 using RussianMunchkin.Common.Time;
-using RussianMunchkin.Server.ConsoleLogic;
-using RussianMunchkin.Server.ConsoleLogic.Commands;
 using RussianMunchkin.Server.Metrics;
 using RussianMunchkin.Server.Server;
 
@@ -16,7 +14,6 @@ namespace RussianMunchkin.Server
         private Thread _updateTask;
         private TimersManager _timersManager;
         private StopWatchTimeController _timeController;
-        private ConsoleController _consoleController;
         private bool _isEnabled;
         private ServerController _serverController;
 
@@ -27,16 +24,7 @@ namespace RussianMunchkin.Server
             _timersManager = new TimersManager(_timeController);
             _serverController = new ServerController();
             
-            InitConsole();
             Init();
-        }
-
-        private void InitConsole()
-        {
-            var endCommand = new EndCommand();
-            var stopServerCommand = new StopServerCommand(this, endCommand);
-            _consoleController = new ConsoleController(stopServerCommand);
-            _consoleController.ProgramCanceled+=ConsoleControllerOnProgramCanceled;
         }
 
         private void Init()
@@ -51,8 +39,9 @@ namespace RussianMunchkin.Server
             _metrics.Enable();
             _isEnabled = true;
             _timeController.Enable();
-            _consoleController.Enable();
             _serverController.Enable();
+            
+            Console.CancelKeyPress += ConsoleControllerOnProgramCanceled;
         }
 
         private void UpdateTask()
@@ -73,15 +62,15 @@ namespace RussianMunchkin.Server
 
         public void Disable()
         {
+            Console.CancelKeyPress -= ConsoleControllerOnProgramCanceled;
+
             _metrics.Disable();
             _isEnabled = false;
             _timeController.Disable();
-            _consoleController.Disable();
-            _consoleController.ProgramCanceled-=ConsoleControllerOnProgramCanceled;
             _serverController.Disable();
         }
 
-        private void ConsoleControllerOnProgramCanceled()
+        private void ConsoleControllerOnProgramCanceled(object sender, ConsoleCancelEventArgs e)
         {
             Disable();
         }

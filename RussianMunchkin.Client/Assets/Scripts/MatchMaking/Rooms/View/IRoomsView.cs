@@ -21,7 +21,7 @@ namespace MatchMaking.Rooms.View
         public void EnterPlayerToRoom(PlayerInfoModel playerInfoModel);
         public void LeftPlayerFromRoom(PlayerInfoModel playerInfoModel);
         public void ChangeAdmin(PlayerInfoModel playerInfoModel);
-        public void ChangeStatusReady(int playerId, bool isReady);
+        public void ChangeStatusReady(string playerLogin, bool isReady);
         public void ChangeStatusStartGame(bool isReady);
         public void ShowListPublicRooms();
         public void ShowListPublicRooms(List<RoomInfoModel> roomInfoModels);

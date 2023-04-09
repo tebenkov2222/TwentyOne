@@ -19,8 +19,8 @@ namespace Game.View
         public void LockTurn();
         public void ReceiveNumber(int number);
         public void ShowResults(List<GamePlayerInfoModel> results);
-        public void PlayerTokedNumber(int playerId);
-        public void PlayerReadyToShow(int playerId);
+        public void PlayerTokedNumber(string playerLogin);
+        public void PlayerReadyToShow(string playerLogin);
         public void RestartGame();
     }
 }

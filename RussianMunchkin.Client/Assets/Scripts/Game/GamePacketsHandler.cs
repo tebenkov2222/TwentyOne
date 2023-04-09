@@ -13,7 +13,7 @@ namespace Game
         private readonly GameController _gameController;
         private readonly RoomModel _roomModel;
 
-        public GamePacketsHandler(IPacketsHandler previewHandler, NetPeer netPeer, GameController gameController, RoomModel roomModel) : base(previewHandler, netPeer)
+        public GamePacketsHandler(IPacketsHandler previewHandler, Peer peer, GameController gameController, RoomModel roomModel) : base(previewHandler, peer)
         {
             _gameController = gameController;
             _roomModel = roomModel;
@@ -33,7 +33,7 @@ namespace Game
                     _gameController.RestartGame();
                     break;
                 case PlayerTokeNumberPacket playerTokeNumberPacket:
-                    _gameController.View.PlayerTokedNumber(playerTokeNumberPacket.PlayerId);
+                    _gameController.View.PlayerTokedNumber(playerTokeNumberPacket.PlayerLogin);
                     break;
                 case PlayerReceivingNumberPacket playerReceivingNumberPacket:
                     _gameController.ReceiveNumber(playerReceivingNumberPacket.Number);
@@ -43,11 +43,11 @@ namespace Game
                     _gameController.View.ShowResults(showResultsPacket.PlayerInfoModels);
                     break;
                 case PlayerReadyGamePacket playerReadyGamePacket:
-                    _gameController.View.PlayerReadyToShow(playerReadyGamePacket.PlayerId);
+                    _gameController.View.PlayerReadyToShow(playerReadyGamePacket.PlayerLogin);
                     break;
                 default: return false;
             }
-            NetPeer.SendResponse(true);
+            _peer.SendResponse(true);
             return true;
         }
     }

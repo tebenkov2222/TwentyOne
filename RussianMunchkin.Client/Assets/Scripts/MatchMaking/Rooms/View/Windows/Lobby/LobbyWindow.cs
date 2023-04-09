@@ -27,7 +27,7 @@ namespace MatchMaking.Rooms.View.Windows.Lobby
         [SerializeField] private LobbyPlayerItemsGroupView _itemsGroupView;
         
         private int _maxCountPlayers;
-        private int _playerIdAdmin;
+        private string _adminLogin;
         private bool _isReady = false;
 
         public bool IsReady
@@ -106,35 +106,35 @@ namespace MatchMaking.Rooms.View.Windows.Lobby
         
         public void SetAdmin(PlayerInfoModel playerInfoModel)
         {
-            SetAdmin(playerInfoModel.PlayerId);
+            SetAdmin(playerInfoModel.Login);
         }
         
-        public void SetAdmin(int playerId)
+        public void SetAdmin(string playserLogin)
         {
-            _playerIdAdmin = playerId;
+            _adminLogin = playserLogin;
             foreach (var scrollBarItem in _itemsGroupView)
             {
-                scrollBarItem.Value.SetAdmin(scrollBarItem.Key == playerId);
+                scrollBarItem.Value.SetAdmin(scrollBarItem.Key == playserLogin);
             }
         }
 
         public void EnterPlayerToRoom(PlayerInfoModel playerInfoModel)
         {
             Debug.Log("EnterPlayerToRoom");
-            var item = _itemsGroupView.Add(playerInfoModel.PlayerId, _lobbyPlayerItemPrefab);
-            item.Init(playerInfoModel.Username, playerInfoModel.PlayerId == _playerIdAdmin, playerInfoModel.IsReady);
+            var item = _itemsGroupView.Add(playerInfoModel.Login, _lobbyPlayerItemPrefab);
+            item.Init(playerInfoModel.Login, playerInfoModel.Login == _adminLogin, playerInfoModel.IsReady);
             ChangeCountPlayer();
         }
 
         public void LeftPlayerFromRoom(PlayerInfoModel playerInfoModel)
         {
-            _itemsGroupView.RemoveItem(playerInfoModel.PlayerId);
+            _itemsGroupView.RemoveItem(playerInfoModel.Login);
             ChangeCountPlayer();
         }
 
-        public void ChangeStatusReady(int playerId, bool isReady)
+        public void ChangeStatusReady(string playerLogin, bool isReady)
         {
-            _itemsGroupView[playerId].ChangeStatusReady(isReady);
+            _itemsGroupView[playerLogin].ChangeStatusReady(isReady);
         }
 
         public void ChangeStatusStartGame(bool isReady)

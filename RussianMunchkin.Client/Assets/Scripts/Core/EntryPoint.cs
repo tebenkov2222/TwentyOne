@@ -1,4 +1,4 @@
-using System;
+using Configuration;
 using RussianMunchkin.Common.Time;
 using UnityEngine;
 using View;
@@ -8,6 +8,8 @@ namespace Core
     public class EntryPoint: MonoBehaviour
     {
         [SerializeField] private  UIManager _uiManager;
+        [SerializeField] private ConfigurationSo _configurationSo;
+        
     
         private TimersManager _timersManager;
         private UnityTimeController _timeController;
@@ -17,8 +19,7 @@ namespace Core
         {
             _timeController = new UnityTimeController();
             _timersManager = new TimersManager(_timeController);
-            _clientController = new ClientController(
-                _uiManager.ConnectingView,_uiManager.ServerHandlerView, _uiManager.AuthUsernameView, _uiManager.RoomsView, _uiManager.GameView);
+            _clientController = new ClientController(_uiManager, _configurationSo);
         }
 
         private void OnEnable()
@@ -39,11 +40,6 @@ namespace Core
         {
             _clientController.Disable();
 
-        }
-
-        private void OnDestroy()
-        {
-            //throw new NotImplementedException();
         }
     }
 }

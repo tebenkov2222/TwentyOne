@@ -5,30 +5,31 @@ using UnityEngine;
 
 namespace View.Shared.ItemsGroup
 {
-    public class LinearDictionaryItemsGroupView<T>: MonoBehaviour, IEnumerable<KeyValuePair<int, T>> where T: MonoBehaviour
+    public class LinearDictionaryItemsGroupView<T>: MonoBehaviour, IEnumerable<KeyValuePair<string, T>> where T: MonoBehaviour
     {
         [SerializeField] private Transform _contentRoot;
         
-        private Dictionary<int, T> _items = new Dictionary<int, T>();
+        private Dictionary<string, T> _items = new Dictionary<string, T>();
 
-        public Dictionary<int, T> Items => _items;
+        public Dictionary<string, T> Items => _items;
 
-        public T this[int key]
+        public T this[string key]
         {
             get => _items[key];
         }
 
         public int Count => _items.Count;
 
-        public TPrefab Add<TPrefab>(int id, TPrefab prefab) where TPrefab : T
+        public TPrefab Add<TPrefab>(string id, TPrefab prefab) where TPrefab : T
         {
             var item = Instantiate(prefab, _contentRoot);
             item.gameObject.SetActive(true);
+            Debug.Log($"Add to dictionary. id = |{id}|, value = |{item}|");
             _items.Add(id, item);
             return item;
         }
 
-        public void RemoveItem(int itemId)
+        public void RemoveItem(string itemId)
         {
             _items.Remove(itemId, out var item);
             Destroy(item.gameObject);
@@ -43,7 +44,7 @@ namespace View.Shared.ItemsGroup
             }
         }
 
-        public IEnumerator<KeyValuePair<int, T>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, T>> GetEnumerator()
         {
             return _items.GetEnumerator();
         }
