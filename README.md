@@ -11,6 +11,8 @@
 
 ## Server
 
+На данный момент сервера отключены.
+
 Данное решение состоит из 4 частей - Common, Server, ServerFramewor, Repository
 
 ### ServerFramework
@@ -40,7 +42,7 @@
 
 Проект собирается при помощи dotnet и пакуется в linux docker container для запуска на сервере
 
-Запуск происходит при помощи файла /docker-compose/Full/docker-compose.yml
+Запуск происходит при помощи файла [docker-compose.yml](https://github.com/tebenkov2222/TwentyOne/blob/main/RussianMunchkin.Server/RussianMunchkin.Server/docker-compose/Full/docker-compose.yml)
 
 ## Метрики
 
